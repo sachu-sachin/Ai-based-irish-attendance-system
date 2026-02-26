@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: attendance_db
+    environment:
+      POSTGRES_DB: attendance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - attendance_network
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: attendance_backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/attendance_db
+      - JWT_SECRET_KEY=your-super-secret-jwt-key-change-in-production
+      - ENVIRONMENT=production
+    volumes:
+      - ./backend:/app
+      - ./models:/app/models
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - attendance_network
+    restart: unless-stopped
+    devices:
+      - /dev/video0:/dev/video0  # For mobile camera access (Linux)
+
+  # Redis (optional, for caching and session management)
+  redis:
+    image: redis:7-alpine
+    container_name: attendance_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - attendance_network
+    restart: unless-stopped
+
+  # Nginx (optional, for production deployment)
+  nginx:
+    image: nginx:alpine
+    container_name: attendance_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+    networks:
+      - attendance_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  attendance_network:
+    driver: bridge

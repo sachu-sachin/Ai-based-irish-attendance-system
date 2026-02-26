@@ -1,0 +1,44 @@
+# Video Source Configuration
+video_source: mobile  # Options: mobile, rtsp
+
+# Mobile Camera Settings
+mobile_camera:
+  device_id: 0
+  fps: 30
+  resolution: [640, 480]
+
+# RTSP Camera Settings
+rtsp_camera:
+  url: "rtsp://username:password@ip:port/stream"
+  fps: 25
+  reconnect_attempts: 3
+  reconnect_delay: 5
+
+# Recognition Settings
+recognition:
+  similarity_threshold: 0.6
+  frame_processing_interval: 1  # seconds
+  face_size: [112, 112]
+  upper_face_ratio: 0.6  # top 60% of face
+
+# Database Settings
+database:
+  url: "postgresql://username:password@localhost:5432/attendance_db"
+  echo: false
+
+# Security Settings
+security:
+  jwt_secret: "your-secret-key-here"
+  jwt_algorithm: "HS256"
+  jwt_expire_hours: 24
+
+# API Settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

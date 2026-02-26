@@ -1,0 +1,32 @@
+# Backend
+backend/attendance.db
+backend/.env
+backend/__pycache__/
+backend/venv/
+backend/logs/
+backend/temp/
+backend/uploads/
+backend/nul
+
+# Flutter
+flutter_app/.dart_tool/
+flutter_app/.flutter-plugins
+flutter_app/.flutter-plugins-dependencies
+flutter_app/.packages
+flutter_app/build/
+flutter_app/.pub-cache/
+flutter_app/.pub/
+flutter_app/attendance_admin_app.iml
+flutter_app/*.log
+flutter_app/*.txt
+flutter_app/inter-font.zip
+flutter_app/nul
+
+# Root
+.venv/
+.DS_Store
+*.pyc
+__pycache__/
+.idea/
+.vscode/
+node_modules/

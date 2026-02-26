@@ -1,0 +1,2 @@
+-- Empty init script for PostgreSQL
+-- Tables are created automatically via SQLAlchemy on startup
