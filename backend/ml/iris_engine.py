@@ -91,8 +91,8 @@ class IrisEngine:
         if not det.landmarks_found:
             return EnrollResult(False, None, None, "No face/eye detected in image")
 
-        feat_left  = self._extractor.extract(det.left_iris)  if det.left_iris  is not None else None
-        feat_right = self._extractor.extract(det.right_iris) if det.right_iris is not None else None
+        feat_left  = self._extractor.extract(det.left_iris, det.left_radius)  if det.left_iris  is not None else None
+        feat_right = self._extractor.extract(det.right_iris, det.right_radius) if det.right_iris is not None else None
 
         if feat_left is None and feat_right is None:
             return EnrollResult(False, None, None, "Could not extract iris features")
@@ -150,9 +150,9 @@ class IrisEngine:
                 message=f"Fake eye detected: {liveness['reason']}",
             )
 
-        # Step 3: Feature extraction
-        feat_left  = self._extractor.extract(det.left_iris)  if det.left_iris  is not None else None
-        feat_right = self._extractor.extract(det.right_iris) if det.right_iris is not None else None
+        # Step 3: Feature extraction (Passing real radii!)
+        feat_left  = self._extractor.extract(det.left_iris, det.left_radius)  if det.left_iris  is not None else None
+        feat_right = self._extractor.extract(det.right_iris, det.right_radius) if det.right_iris is not None else None
 
         if feat_left is None and feat_right is None:
             return ScanResult(
