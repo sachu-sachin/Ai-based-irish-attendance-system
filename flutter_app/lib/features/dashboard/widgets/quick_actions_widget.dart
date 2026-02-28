@@ -31,22 +31,10 @@ class QuickActionsWidget extends StatelessWidget {
               onTap: () => context.go('/students/add'),
             ),
             _QuickActionCard(
-              title: 'Mark Attendance',
-              icon: Icons.how_to_reg,
-              color: AppTheme.successColor,
-              onTap: () => context.go('/attendance'),
-            ),
-            _QuickActionCard(
               title: 'View Reports',
               icon: Icons.assessment,
               color: AppTheme.warningColor,
               onTap: () => context.go('/reports'),
-            ),
-            _QuickActionCard(
-              title: 'Manage Cameras',
-              icon: Icons.camera_alt,
-              color: AppTheme.accentColor,
-              onTap: () => context.go('/cameras'),
             ),
           ],
         ),

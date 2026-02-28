@@ -50,16 +50,20 @@ class ApiService {
   Future<List<DepartmentResponse>> getDepartments() async {
     final r = await _dio.get('/departments/');
     return (r.data as List)
-        .map((e) =>
-            DepartmentResponse.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (e) =>
+              DepartmentResponse.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
   }
 
   Future<DepartmentResponse> createDepartment(
-      DepartmentCreateRequest request) async {
+    DepartmentCreateRequest request,
+  ) async {
     final r = await _dio.post('/departments/', data: request.toJson());
     return DepartmentResponse.fromJson(
-        Map<String, dynamic>.from(r.data as Map));
+      Map<String, dynamic>.from(r.data as Map),
+    );
   }
 
   // ── Subjects ──────────────────────────────────
@@ -67,8 +71,9 @@ class ApiService {
   Future<List<SubjectResponse>> getSubjects() async {
     final r = await _dio.get('/subjects/');
     return (r.data as List)
-        .map((e) =>
-            SubjectResponse.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (e) => SubjectResponse.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
   }
 
@@ -82,13 +87,16 @@ class ApiService {
   Future<List<ClassroomResponse>> getClassrooms() async {
     final r = await _dio.get('/classrooms/');
     return (r.data as List)
-        .map((e) =>
-            ClassroomResponse.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (e) =>
+              ClassroomResponse.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
   }
 
   Future<ClassroomResponse> createClassroom(
-      ClassroomCreateRequest request) async {
+    ClassroomCreateRequest request,
+  ) async {
     final r = await _dio.post('/classrooms/', data: request.toJson());
     return ClassroomResponse.fromJson(Map<String, dynamic>.from(r.data as Map));
   }
@@ -132,15 +140,19 @@ class ApiService {
     int? departmentId,
     String? year,
   }) async {
-    final r = await _dio.get('/students/', queryParameters: {
-      if (skip != null) 'skip': skip,
-      if (limit != null) 'limit': limit,
-      if (departmentId != null) 'department_id': departmentId,
-      if (year != null) 'year': year,
-    });
+    final r = await _dio.get(
+      '/students/',
+      queryParameters: {
+        if (skip != null) 'skip': skip,
+        if (limit != null) 'limit': limit,
+        if (departmentId != null) 'department_id': departmentId,
+        if (year != null) 'year': year,
+      },
+    );
     return (r.data as List)
-        .map((e) =>
-            StudentResponse.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (e) => StudentResponse.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
   }
 
@@ -173,14 +185,17 @@ class ApiService {
     int? skip,
     int? limit,
   }) async {
-    final r = await _dio.get('/attendance', queryParameters: {
-      if (date != null) 'attendance_date': date,
-      if (studentId != null) 'student_id': studentId,
-      if (subjectId != null) 'subject_id': subjectId,
-      if (staffId != null) 'staff_id': staffId,
-      if (skip != null) 'skip': skip,
-      if (limit != null) 'limit': limit,
-    });
+    final r = await _dio.get(
+      '/attendance',
+      queryParameters: {
+        if (date != null) 'attendance_date': date,
+        if (studentId != null) 'student_id': studentId,
+        if (subjectId != null) 'subject_id': subjectId,
+        if (staffId != null) 'staff_id': staffId,
+        if (skip != null) 'skip': skip,
+        if (limit != null) 'limit': limit,
+      },
+    );
     return r.data as List;
   }
 
@@ -205,12 +220,14 @@ class ApiService {
     final r = await _dio.get('/admin/timetable/');
     return (r.data as List)
         .map(
-            (e) => TimetableEntry.fromJson(Map<String, dynamic>.from(e as Map)))
+          (e) => TimetableEntry.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
   }
 
   Future<TimetableEntry> createTimetableEntry(
-      TimetableCreateRequest request) async {
+    TimetableCreateRequest request,
+  ) async {
     final r = await _dio.post('/admin/timetable/', data: request.toJson());
     return TimetableEntry.fromJson(Map<String, dynamic>.from(r.data as Map));
   }
@@ -243,25 +260,30 @@ class LoginResponse {
   final String tokenType;
   final Map<String, dynamic> user;
 
-  LoginResponse(
-      {required this.accessToken, required this.tokenType, required this.user});
+  LoginResponse({
+    required this.accessToken,
+    required this.tokenType,
+    required this.user,
+  });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
-        accessToken: json['access_token'] as String,
-        tokenType: json['token_type'] as String,
-        user: Map<String, dynamic>.from(json['user'] as Map),
-      );
+    accessToken: json['access_token'] as String,
+    tokenType: json['token_type'] as String,
+    user: Map<String, dynamic>.from(json['user'] as Map),
+  );
 }
 
 class PasswordChangeRequest {
   final String currentPassword;
   final String newPassword;
-  PasswordChangeRequest(
-      {required this.currentPassword, required this.newPassword});
+  PasswordChangeRequest({
+    required this.currentPassword,
+    required this.newPassword,
+  });
   Map<String, dynamic> toJson() => {
-        'current_password': currentPassword,
-        'new_password': newPassword,
-      };
+    'current_password': currentPassword,
+    'new_password': newPassword,
+  };
 }
 
 class DashboardStats {
@@ -287,16 +309,16 @@ class DashboardStats {
   int get totalAttendanceToday => todayAttendance;
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) => DashboardStats(
-        totalStudents: (json['total_students'] as int?) ?? 0,
-        totalStaff: (json['total_staff'] as int?) ?? 0,
-        todayAttendance: (json['today_attendance'] ??
-            json['total_attendance_today'] ??
-            0) as int,
-        totalSubjects: (json['total_subjects'] as int?) ?? 0,
-        totalDepartments: (json['total_departments'] as int?) ?? 0,
-        totalAdmins: (json['total_admins'] as int?) ?? 0,
-        totalCameras: (json['total_cameras'] as int?) ?? 0,
-      );
+    totalStudents: (json['total_students'] as int?) ?? 0,
+    totalStaff: (json['total_staff'] as int?) ?? 0,
+    todayAttendance:
+        (json['today_attendance'] ?? json['total_attendance_today'] ?? 0)
+            as int,
+    totalSubjects: (json['total_subjects'] as int?) ?? 0,
+    totalDepartments: (json['total_departments'] as int?) ?? 0,
+    totalAdmins: (json['total_admins'] as int?) ?? 0,
+    totalCameras: (json['total_cameras'] as int?) ?? 0,
+  );
 }
 
 class DepartmentResponse {
@@ -318,16 +340,22 @@ class SubjectResponse {
   final int id;
   final String name;
   final String subjectType;
-  SubjectResponse(
-      {required this.id, required this.name, required this.subjectType});
+  SubjectResponse({
+    required this.id,
+    required this.name,
+    required this.subjectType,
+  });
   factory SubjectResponse.fromJson(Map<String, dynamic> json) =>
       SubjectResponse(
         id: json['id'] as int,
         name: json['name'] as String,
         subjectType: (json['subject_type'] as String?) ?? 'General',
       );
-  Map<String, dynamic> toJson() =>
-      {'id': id, 'name': name, 'subject_type': subjectType};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'subject_type': subjectType,
+  };
 }
 
 class SubjectCreateRequest {
@@ -356,9 +384,9 @@ class ClassroomCreateRequest {
   final int? departmentId;
   ClassroomCreateRequest({required this.name, this.departmentId});
   Map<String, dynamic> toJson() => {
-        'name': name,
-        if (departmentId != null) 'department_id': departmentId,
-      };
+    'name': name,
+    if (departmentId != null) 'department_id': departmentId,
+  };
 }
 
 class StaffResponse {
@@ -383,15 +411,15 @@ class StaffResponse {
   });
 
   factory StaffResponse.fromJson(Map<String, dynamic> json) => StaffResponse(
-        id: json['id'] as int,
-        name: json['name'] as String,
-        subjectId: json['subject_id'] as int?,
-        subjectName: json['subject_name'] as String?,
-        username: json['username'] as String,
-        role: json['role'] as String,
-        isActive: (json['is_active'] as bool?) ?? true,
-        createdAt: json['created_at'] as String,
-      );
+    id: json['id'] as int,
+    name: json['name'] as String,
+    subjectId: json['subject_id'] as int?,
+    subjectName: json['subject_name'] as String?,
+    username: json['username'] as String,
+    role: json['role'] as String,
+    isActive: (json['is_active'] as bool?) ?? true,
+    createdAt: json['created_at'] as String,
+  );
 }
 
 class StaffCreateRequest {
@@ -400,10 +428,10 @@ class StaffCreateRequest {
   final String? password;
   StaffCreateRequest({required this.name, this.subjectId, this.password});
   Map<String, dynamic> toJson() => {
-        'name': name,
-        if (subjectId != null) 'subject_id': subjectId,
-        if (password != null) 'password': password,
-      };
+    'name': name,
+    if (subjectId != null) 'subject_id': subjectId,
+    if (password != null) 'password': password,
+  };
 }
 
 class StudentResponse {
@@ -492,22 +520,22 @@ class TimetableEntry {
   });
 
   factory TimetableEntry.fromJson(Map<String, dynamic> json) => TimetableEntry(
-        id: json['id'] as int,
-        dayOfWeek: json['day_of_week'] as String,
-        timeSlot: json['time_slot'] as String,
-        staffId: json['staff_id'] as int?,
-        staffName: json['staff_name'] as String?,
-        subjectId: json['subject_id'] as int?,
-        subjectName: json['subject_name'] as String?,
-        classroomId: json['classroom_id'] as int?,
-        classroomName: json['classroom_name'] as String?,
-      );
+    id: json['id'] as int,
+    dayOfWeek: json['day_of_week'] as String,
+    timeSlot: json['time_slot'] as String,
+    staffId: json['staff_id'] as int?,
+    staffName: json['staff_name'] as String?,
+    subjectId: json['subject_id'] as int?,
+    subjectName: json['subject_name'] as String?,
+    classroomId: json['classroom_id'] as int?,
+    classroomName: json['classroom_name'] as String?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'day_of_week': dayOfWeek,
-        'time_slot': timeSlot,
-      };
+    'id': id,
+    'day_of_week': dayOfWeek,
+    'time_slot': timeSlot,
+  };
 }
 
 class TimetableCreateRequest {
@@ -524,12 +552,12 @@ class TimetableCreateRequest {
     this.classroomId,
   });
   Map<String, dynamic> toJson() => {
-        'day_of_week': dayOfWeek,
-        'time_slot': timeSlot,
-        if (staffId != null) 'staff_id': staffId,
-        if (subjectId != null) 'subject_id': subjectId,
-        if (classroomId != null) 'classroom_id': classroomId,
-      };
+    'day_of_week': dayOfWeek,
+    'time_slot': timeSlot,
+    if (staffId != null) 'staff_id': staffId,
+    if (subjectId != null) 'subject_id': subjectId,
+    if (classroomId != null) 'classroom_id': classroomId,
+  };
 }
 
 class ManualAttendanceRequest {
@@ -546,12 +574,12 @@ class ManualAttendanceRequest {
     this.confidence = 1.0,
   });
   Map<String, dynamic> toJson() => {
-        'student_id': studentId,
-        if (subjectId != null) 'subject_id': subjectId,
-        if (staffId != null) 'staff_id': staffId,
-        'status': status,
-        'confidence': confidence,
-      };
+    'student_id': studentId,
+    if (subjectId != null) 'subject_id': subjectId,
+    if (staffId != null) 'staff_id': staffId,
+    'status': status,
+    'confidence': confidence,
+  };
 }
 
 class IrisAttendanceRequest {
@@ -568,22 +596,23 @@ class IrisAttendanceRequest {
     this.confidence = 1.0,
   });
   Map<String, dynamic> toJson() => {
-        'student_id': studentId,
-        if (subjectId != null) 'subject_id': subjectId,
-        if (staffId != null) 'staff_id': staffId,
-        'is_fake_eye': isFakeEye,
-        'confidence': confidence,
-      };
+    'student_id': studentId,
+    if (subjectId != null) 'subject_id': subjectId,
+    if (staffId != null) 'staff_id': staffId,
+    'is_fake_eye': isFakeEye,
+    'confidence': confidence,
+  };
 }
 
 class AttendanceStats {
   final int totalPresent;
   final int totalStudents;
   final String date;
-  AttendanceStats(
-      {required this.totalPresent,
-      required this.totalStudents,
-      required this.date});
+  AttendanceStats({
+    required this.totalPresent,
+    required this.totalStudents,
+    required this.date,
+  });
   factory AttendanceStats.fromJson(Map<String, dynamic> json) =>
       AttendanceStats(
         totalPresent: (json['present'] ?? json['total_present'] ?? 0) as int,
@@ -638,7 +667,9 @@ class UserResponse {
   final String role;
   UserResponse({required this.username, required this.role});
   factory UserResponse.fromJson(Map<String, dynamic> json) => UserResponse(
-      username: json['username'] as String, role: json['role'] as String);
+    username: json['username'] as String,
+    role: json['role'] as String,
+  );
 }
 
 // ─────────────────────────────────────────────
@@ -647,7 +678,7 @@ class UserResponse {
 
 final apiServiceProvider = Provider<ApiService>((ref) {
   final dio = Dio();
-  dio.options.baseUrl = 'http://192.168.157.61:8001';
+  dio.options.baseUrl = 'http://192.168.1.3:8001';
   dio.options.connectTimeout = const Duration(seconds: 30);
   dio.options.receiveTimeout = const Duration(seconds: 30);
 

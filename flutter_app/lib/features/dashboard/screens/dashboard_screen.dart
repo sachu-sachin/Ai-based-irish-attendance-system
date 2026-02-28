@@ -154,29 +154,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: StatsCard(
-                              title: 'Admin Users',
-                              value: stats.totalAdmins.toString(),
-                              icon: Icons.admin_panel_settings,
-                              color: AppTheme.warningColor,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: StatsCard(
-                              title: 'Cameras',
-                              value: stats.totalCameras.toString(),
-                              icon: Icons.camera_alt,
-                              color: AppTheme.accentColor,
-                              onTap: () => context.go('/cameras'),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   );
                 },

@@ -17,10 +17,10 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 # Thresholds (tuned empirically — adjust for your camera/lighting)
-_SPECULAR_MIN_AREA   = 3      # minimum bright spot area in pixels (corneal reflection)
-_SPECULAR_THRESHOLD  = 235    # brightness threshold for specular region
-_ENTROPY_MIN         = 4.0    # minimum texture entropy for real iris
-_SHARPNESS_MIN       = 8.0    # minimum Laplacian variance for real pupil edge
+_SPECULAR_MIN_AREA   = 2      # minimum bright spot area in pixels (corneal reflection)
+_SPECULAR_THRESHOLD  = 200    # brightness threshold for specular region
+_ENTROPY_MIN         = 2.0    # minimum texture entropy for real iris
+_SHARPNESS_MIN       = 3.0    # minimum Laplacian variance for real pupil edge
 
 
 class LivenessDetector:

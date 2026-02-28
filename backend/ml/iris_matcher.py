@@ -1,14 +1,14 @@
 """
-Iris matcher — compares a query IrisCode against all enrolled students.
+Iris matcher — compares a query SIFT descriptor against all enrolled students.
 
-Uses fractional Hamming distance on 2048-bit IrisCodes.
-Industry threshold: HD < 0.32 = same person (EER ≈ 0.1%).
-
-Rotation shifts: tries ±7 bit-shift rotations to account for
-head tilt between enrollment and scan.
+Uses OpenCV's BFMatcher (Brute-Force Matcher) with Lowe's Ratio Test 
+(0.7 ratio) to guarantee robust matches.
+Returns the identity of the student with the highest number of "good" matches,
+if it exceeds the MATCH_THRESHOLD (empirically set to ~15 good matches).
 """
-import json
 import logging
+import cv2
+import numpy as np
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -16,8 +16,8 @@ from .feature_extractor import FeatureExtractor
 
 logger = logging.getLogger(__name__)
 
-MATCH_THRESHOLD  = 0.32   # below this = identity match
-MAX_SHIFT_BITS   = 7      # IrisCode rotation compensation (head tilt)
+MATCH_THRESHOLD = 15     # Minimum "good" SIFT keypoint matches to consider identity verified
+LOWES_RATIO    = 0.70    # Industry standard for filtering robust matches
 
 
 @dataclass
@@ -26,8 +26,8 @@ class MatchResult:
     student_id: Optional[int]
     student_name: Optional[str]
     roll_number: Optional[str]
-    confidence: float           # 0.0–1.0 (1 - hamming_distance / 0.5)
-    hamming_distance: float
+    confidence: float           # Maps number of good matches to [0.0, 1.0]
+    hamming_distance: float     # Legacy field kept for API compatibility, unused.
 
 
 @dataclass
@@ -35,27 +35,34 @@ class EnrolledIris:
     student_id:   int
     student_name: str
     roll_number:  str
-    feature_left:  Optional[str]   # hex IrisCode
+    feature_left:  Optional[str]   # JSON holding SIFT descriptor
     feature_right: Optional[str]
 
 
 class IrisMatcher:
 
     def __init__(self):
-        self._extractor = FeatureExtractor()
+        # BFMatcher for SIFT (L2 norm)
+        self._matcher = cv2.BFMatcher(cv2.NORM_L2)
 
     def match(
         self,
-        query_hex: str,
+        query_json: str,
         enrolled: List[EnrolledIris],
         use_left: bool = True,     # which eye side is in query
     ) -> MatchResult:
         """
-        Compare query_hex against all enrolled irises.
-        Returns the best MatchResult.
+        Compare query JSON descriptors against all enrolled irises using SIFT.
+        Returns the best MatchResult based on max good matches.
         """
-        best_hd   = 1.0
-        best_enr  = None
+        query_desc = FeatureExtractor.deserialize_descriptors(query_json)
+        
+        if query_desc is None or len(query_desc) < 2:
+            logger.warning("Query descriptor invalid or too few keypoints.")
+            return MatchResult(False, None, None, None, 0.0, 1.0)
+
+        best_matches_count = 0
+        best_enr = None
 
         for enr in enrolled:
             # Pick the stored code for the same eye side
@@ -66,65 +73,64 @@ class IrisMatcher:
             if not db_code:
                 continue
 
-            hd = self._min_hd_with_rotation(query_hex, db_code)
-            if hd < best_hd:
-                best_hd  = hd
+            db_desc = FeatureExtractor.deserialize_descriptors(db_code)
+            if db_desc is None or len(db_desc) < 2:
+                continue
+
+            # Compute SIFT matches
+            good_matches = self._match_descriptors(query_desc, db_desc)
+
+            if good_matches > best_matches_count:
+                best_matches_count = good_matches
                 best_enr = enr
 
-        matched = best_hd < MATCH_THRESHOLD
-        confidence = max(0.0, 1.0 - best_hd / 0.5)  # normalise to [0,1]
+        matched = best_matches_count >= MATCH_THRESHOLD
+        
+        # Calculate a rough confidence (15 matches = ~60%, 25+ matches = 99%)
+        confidence = min(1.0, float(best_matches_count) / 25.0)
 
         if matched and best_enr:
+            logger.info(f"MATCH FOUND: {best_enr.student_name} with {best_matches_count} good SIFT matches.")
             return MatchResult(
                 matched=True,
                 student_id=best_enr.student_id,
                 student_name=best_enr.student_name,
                 roll_number=best_enr.roll_number,
                 confidence=round(confidence, 4),
-                hamming_distance=round(best_hd, 4),
+                hamming_distance=0.0, # Not applicable anymore
             )
 
+        logger.info(f"No match. Best had {best_matches_count}/{MATCH_THRESHOLD} good matches.")
         return MatchResult(
             matched=False,
             student_id=None,
             student_name=None,
             roll_number=None,
             confidence=round(confidence, 4),
-            hamming_distance=round(best_hd, 4),
+            hamming_distance=1.0,
         )
 
-    def _min_hd_with_rotation(self, hex_a: str, hex_b: str) -> float:
+    def _match_descriptors(self, desc_a: np.ndarray, desc_b: np.ndarray) -> int:
         """
-        Compute the minimum Hamming distance across ±MAX_SHIFT_BITS
-        circular bit-shifts. This corrects for head tilt.
+        Finds matches between two descriptor sets using knnMatch.
+        Applies Lowe's ratio test to filter out weak matches.
+        Returns the number of robust 'good' matches.
         """
+        if desc_a is None or desc_b is None:
+            return 0
+        
         try:
-            a = bytes.fromhex(hex_a)
-            b = bytes.fromhex(hex_b)
-        except ValueError:
-            return 1.0
-
-        if len(a) != len(b):
-            return 1.0
-
-        bits_a = self._bytes_to_bits(a)
-        bits_b = self._bytes_to_bits(b)
-        n      = len(bits_a)
-
-        min_hd = 1.0
-        for shift in range(-MAX_SHIFT_BITS, MAX_SHIFT_BITS + 1):
-            shifted_b = bits_b[-shift:] + bits_b[:-shift] if shift else bits_b
-            diff = sum(x != y for x, y in zip(bits_a, shifted_b))
-            hd   = diff / n
-            if hd < min_hd:
-                min_hd = hd
-
-        return min_hd
-
-    @staticmethod
-    def _bytes_to_bits(b: bytes) -> list:
-        bits = []
-        for byte in b:
-            for i in range(7, -1, -1):
-                bits.append((byte >> i) & 1)
-        return bits
+            # Keep k=2 for the ratio test
+            matches = self._matcher.knnMatch(desc_a, desc_b, k=2)
+            
+            good_count = 0
+            for m_n in matches:
+                if len(m_n) != 2:
+                    continue
+                m, n = m_n
+                if m.distance < LOWES_RATIO * n.distance:
+                    good_count += 1
+            return good_count
+        except Exception as e:
+            logger.error(f"BFMatcher failed: {e}")
+            return 0
